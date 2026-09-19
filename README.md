@@ -2,6 +2,47 @@
 
 Microservicio Spring Boot para gestionar usuarios sincronizados desde Entra ID a través del flujo front -> BFF -> MS.
 
+## Flujo del microservicio
+
+```mermaid
+flowchart LR
+    Front[Frontend] -->|Solicitud con token de Entra ID| BFF[BFF]
+    BFF -->|POST /api/usuarios con oid, nombre y email| MS[ms-clientes]
+    MS -->|Busca por entraIdOid| DB[(Base de datos)]
+    MS -->|Crea o actualiza usuario y calcula rol| DB
+    MS -->|Respuesta del usuario| BFF
+    BFF --> Front
+```
+
+### Qué hace
+
+- Recibe desde un consumidor HTTP, normalmente el BFF, los datos del usuario en `POST /api/usuarios`.
+- Usa el `oid` de Entra ID como identificador único del usuario.
+- Busca el usuario por OID y aplica aprovisionamiento just-in-time:
+  - Si no existe, lo crea.
+  - Si existe, actualiza su nombre, email y rol.
+- Calcula el rol en el servidor comparando el OID recibido con `APP_ADMIN_OID`:
+  - OID configurado: `admin`.
+  - Cualquier otro OID: `user`.
+- Permite consultar un usuario existente mediante `GET /api/usuarios/{oid}`.
+- Persiste los datos mediante JPA en la base de datos configurada.
+
+### Qué no hace
+
+- No inicia sesión en Entra ID ni valida directamente tokens, credenciales o permisos.
+- No obtiene el OID consultando Entra ID. El OID debe venir en la solicitud recibida, idealmente reenviada por el BFF después de validar el token.
+- No llama al BFF ni a Entra ID desde este código; expone una API para que el BFF la consuma.
+- No confía en el campo `rol` del request para asignar privilegios. Ese campo se conserva por compatibilidad del contrato, pero el rol final se calcula a partir del OID.
+- No contiene lógica de frontend, emisión de tokens ni autorización por endpoint.
+
+### Responsabilidad del BFF
+
+El BFF debe recibir la solicitud del frontend, validar el token de Entra ID y extraer los claims necesarios, incluido el `oid`. Luego debe enviar esos datos a este microservicio mediante `POST /api/usuarios`. La implementación actual de este repositorio no demuestra ni reemplaza esa validación.
+
+### Persistencia actual
+
+Por defecto se utiliza H2 en memoria (`jdbc:h2:mem:msclientes`). Los usuarios se pierden al reiniciar la aplicación, salvo que se configure otra base de datos mediante las variables de conexión.
+
 ## Cambios de hoy
 
 - Se eliminó la capa antigua de `clientes` y el proyecto quedó centrado en `usuarios`.

@@ -1,5 +1,23 @@
 server:
-    port: 8083
+    port: ${SERVER_PORT:8083}
 spring:
     application:
         name: ms-clientes
+    jpa:
+        open-in-view: false
+    datasource:
+        url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:msclientes;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+        driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+        username: ${SPRING_DATASOURCE_USERNAME:sa}
+        password: ${SPRING_DATASOURCE_PASSWORD:}
+    jpa:
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.H2Dialect
+    h2:
+        console:
+            enabled: true
+app:
+    admin-oid: ${APP_ADMIN_OID:32a7ca6e-5a16-4dd0-9cc5-7ad24350eca3}

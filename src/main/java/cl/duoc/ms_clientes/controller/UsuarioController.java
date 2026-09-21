@@ -1,7 +1,7 @@
 package cl.duoc.ms_clientes.controller;
 
 import cl.duoc.ms_clientes.dto.UsuarioRequest;
-import cl.duoc.ms_clientes.entity.Usuario;
+import cl.duoc.ms_clientes.dto.UsuarioResponse;
 import cl.duoc.ms_clientes.service.UsuarioService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,12 +20,12 @@ public class UsuarioController {
     }
 
     @GetMapping("/{oid}")
-    public Usuario buscarPorOid(@PathVariable String oid) {
-        return usuarioService.buscarPorOid(oid);
+    public UsuarioResponse buscarPorOid(@PathVariable String oid) {
+        return UsuarioResponse.from(usuarioService.buscarPorOid(oid));
     }
 
     @PostMapping
-    public Usuario buscarOCrearUsuario(@RequestBody UsuarioRequest request) {
-        return usuarioService.buscarOCrearUsuario(request);
+    public UsuarioResponse buscarOCrearUsuario(@RequestBody UsuarioRequest request) {
+        return UsuarioResponse.from(usuarioService.buscarOCrearUsuario(request));
     }
 }
